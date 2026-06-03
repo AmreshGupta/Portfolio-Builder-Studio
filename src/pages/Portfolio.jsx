@@ -18,33 +18,23 @@ export default function Portfolio() {
   const [contactSending, setContactSending] = useState(false);
 
   useEffect(() => {
+    setLoading(true);
+    setErrorMsg(null);
+
     getPortfolio(slug)
       .then((portfolio) => {
         setData(portfolio);
         setLoading(false);
       })
-      .catch(() => {
-        loadFromFallback();
+      .catch((error) => {
+        setData(null);
+        setErrorMsg(
+          error.message ||
+            "Portfolio not found. Make sure the custom URL slug is correct and has been saved.",
+        );
+        setLoading(false);
       });
   }, [slug]);
-
-  const loadFromFallback = () => {
-    const localData = localStorage.getItem(`portfolio_${slug}`);
-    if (localData) {
-      try {
-        setData(JSON.parse(localData));
-        setLoading(false);
-        return;
-      } catch {
-        localStorage.removeItem(`portfolio_${slug}`);
-      }
-    }
-
-    setErrorMsg(
-      "Portfolio not found. Make sure the custom URL slug is correct and has been saved.",
-    );
-    setLoading(false);
-  };
 
   const handleDownloadResume = () => {
     if (!openResume(data)) {

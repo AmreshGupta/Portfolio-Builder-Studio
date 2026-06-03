@@ -43,9 +43,11 @@ export default function AuthFormPanel({
     setOtpMessage("");
 
     try {
+      const wasResend = otpSent;
       await sendSignupOtp(email, form.name.trim());
+      setOtp("");
       setOtpSent(true);
-      setOtpMessage("OTP has been sent to your email.");
+      setOtpMessage(wasResend ? "New OTP sent to your email." : "OTP sent to your email.");
     } catch (error) {
       setOtpMessage(error.message || "Unable to send OTP. Please try again.");
     } finally {
@@ -55,7 +57,7 @@ export default function AuthFormPanel({
 
   const handleVerifyOtp = async () => {
     const email = form.email.trim().toLowerCase();
-    const code = otp.trim();
+    const code = otp.replace(/\D/g, "");
 
     if (!code) {
       setOtpMessage("Please enter OTP.");
@@ -149,7 +151,7 @@ export default function AuthFormPanel({
                 onClick={handleSendOtp}
                 disabled={emailVerified || otpLoading || !form.email.trim()}
               >
-                {emailVerified ? "Verified" : otpLoading ? "Sending..." : "Verify Email"}
+                {emailVerified ? "Verified" : otpLoading ? "Sending..." : otpSent ? "Resend OTP" : "Verify Email"}
               </button>
             )}
           </div>
@@ -163,7 +165,7 @@ export default function AuthFormPanel({
                 type="text"
                 inputMode="numeric"
                 value={otp}
-                onChange={(event) => setOtp(event.target.value)}
+                onChange={(event) => setOtp(event.target.value.replace(/\D/g, "").slice(0, 6))}
                 placeholder="Enter 6-digit OTP"
                 maxLength="6"
               />

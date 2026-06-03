@@ -22,7 +22,7 @@ export async function uploadPortfolioImage(file) {
 }
 
 export async function getPortfolio(slug) {
-  const data = await apiRequest(`/api/portfolio/${slug}`);
+  const data = await apiRequest(`/api/portfolio/${encodeURIComponent(slug)}`);
 
   return data.portfolio;
 }
@@ -34,7 +34,7 @@ export async function getMyPortfolios() {
 }
 
 export async function sendPortfolioMessage(slug, messageData) {
-  return apiRequest(`/api/portfolio/${slug}/contact`, {
+  return apiRequest(`/api/portfolio/${encodeURIComponent(slug)}/contact`, {
     method: "POST",
     body: JSON.stringify(messageData),
   });

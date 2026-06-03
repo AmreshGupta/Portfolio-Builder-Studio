@@ -7,6 +7,14 @@ export default function DashboardHeader({
   onSlugChange,
   onToggleFullscreen,
 }) {
+  const cleanSlug = (slug || "")
+    .toLowerCase()
+    .replace(/[^a-z0-9 -]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
+
   return (
     <header className="dashboard-header">
       <div className="logo-section">
@@ -19,7 +27,7 @@ export default function DashboardHeader({
           <span className="slug-prefix">portfolio/</span>
           <input
             type="text"
-            value={slug}
+            value={cleanSlug}
             onChange={(event) => onSlugChange(event.target.value)}
             className="slug-input"
             placeholder="custom-link"
@@ -31,10 +39,10 @@ export default function DashboardHeader({
         </button>
 
         <a
-          href={slug ? `/portfolio/${slug}` : undefined}
+          href={cleanSlug ? `/portfolio/${cleanSlug}` : undefined}
           target="_blank"
           rel="noreferrer"
-          className={`btn-secondary ${!slug ? "disabled-link" : ""}`}
+          className={`btn-secondary ${!cleanSlug ? "disabled-link" : ""}`}
         >
           View Live URL
         </a>

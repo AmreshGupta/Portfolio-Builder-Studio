@@ -7,8 +7,8 @@ import DashboardHeader from "../components/dashboard/DashboardHeader";
 import { DEMO_PROFILES } from "../data/demoProfiles";
 import { APP_BASE_URL } from "../utils/apiClient";
 import { clearAuthUser } from "../utils/authStorage";
-import { getMyPortfolios, savePortfolio, uploadPortfolioImage } from "../utils/portfolioApi";
-import { getEmailHref, sendContactEmail } from "../utils/contactActions";
+import { getMyPortfolios, savePortfolio, sendPortfolioMessage, uploadPortfolioImage } from "../utils/portfolioApi";
+import { getContactFormData, getEmailHref } from "../utils/contactActions";
 import { getImageSrc } from "../utils/imageUrl";
 import { openResume } from "../utils/resumeDownload";
 import { getExternalHref, getSocialLinkItems } from "../utils/socialLinks";
@@ -22,7 +22,13 @@ const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const INDIAN_PHONE_REGEX = /^[6-9]\d{9}$/;
 
 function makeSlug(name) {
-  return name.toLowerCase().replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, "-");
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9 -]/g, "")
+    .trim()
+    .replace(/\s+/g, "-")
+    .replace(/-+/g, "-")
+    .replace(/^-|-$/g, "");
 }
 
 function isAuthError(error) {
@@ -37,6 +43,7 @@ export default function Dashboard() {
   const [fullscreenMode, setFullscreenMode] = useState(false);
   const [toast, setToast] = useState(null);
   const [publishing, setPublishing] = useState(false);
+  const [contactSending, setContactSending] = useState(false);
   const [newSkill, setNewSkill] = useState("");
   const [experienceInput, setExperienceInput] = useState({ company: "", role: "", duration: "", description: "" });
   const [educationInput, setEducationInput] = useState({ institution: "", degree: "", year: "", description: "" });
@@ -52,6 +59,7 @@ export default function Dashboard() {
           setForm({
             ...DEFAULT_PROFILE,
             ...portfolios[0],
+            slug: makeSlug(portfolios[0].slug || portfolios[0].name || ""),
             skills: portfolios[0].skills || [],
             experience: portfolios[0].experience || [],
             education: portfolios[0].education || [],
@@ -102,7 +110,9 @@ export default function Dashboard() {
   const handleSubmit = async () => {
     if (publishing) return;
 
-    if (!form.slug?.trim()) {
+    const slug = makeSlug(form.slug || form.name || "");
+
+    if (!slug) {
       showToast("Please add a portfolio URL before publishing");
       return;
     }
@@ -125,11 +135,15 @@ export default function Dashboard() {
     try {
       const savedPortfolio = await savePortfolio({
         ...form,
+        slug,
         contactEmail,
         contactPhone,
       });
       setForm((prev) => ({ ...prev, ...savedPortfolio }));
-      localStorage.setItem(`portfolio_${savedPortfolio.slug}`, JSON.stringify(savedPortfolio));
+      if (form.slug) {
+        localStorage.removeItem(`portfolio_${form.slug}`);
+      }
+      localStorage.removeItem(`portfolio_${savedPortfolio.slug}`);
       showToast("Portfolio published successfully");
     } catch (error) {
       if (isAuthError(error)) {
@@ -262,7 +276,7 @@ export default function Dashboard() {
   };
 
   const handleSlugChange = (value) => {
-    updateForm("slug", value.toLowerCase().replace(/[^a-zA-Z0-9-]/g, ""));
+    updateForm("slug", makeSlug(value));
   };
 
   const handlePhoneChange = (value) => {
@@ -369,16 +383,38 @@ export default function Dashboard() {
         <div className="contact-form">
           <form
             className="template-contact-form-inner"
-            onSubmit={(event) => {
-              if (!sendContactEmail(event, data.contactEmail, data.name)) {
-                showToast("Add a contact email before sending messages");
+            onSubmit={async (event) => {
+              event.preventDefault();
+
+              if (contactSending) {
+                return;
+              }
+
+              const messageSlug = data.slug || form.slug;
+
+              if (!messageSlug) {
+                showToast("Publish your portfolio before sending test messages");
+                return;
+              }
+
+              try {
+                setContactSending(true);
+                await sendPortfolioMessage(messageSlug, getContactFormData(event.currentTarget));
+                event.currentTarget.reset();
+                showToast("Message sent successfully");
+              } catch (error) {
+                showToast(error.message || "Unable to send message");
+              } finally {
+                setContactSending(false);
               }
             }}
           >
             <input name="name" type="text" placeholder="Name" required />
             <input name="email" type="email" placeholder="Email Address" required />
             <textarea name="message" placeholder="Message details..." required />
-            <button type="submit" className="template-form-btn">Send Message</button>
+            <button type="submit" className="template-form-btn" disabled={contactSending}>
+              {contactSending ? "Sending..." : "Send Message"}
+            </button>
           </form>
         </div>
       </div>
