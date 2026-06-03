@@ -1,21 +1,32 @@
 ﻿import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import axios from "axios";
 import ContactIcon from "../components/common/ContactIcon";
 import ImageUploadField from "../components/common/ImageUploadField";
 import SocialLinks from "../components/common/SocialLinks";
 import DashboardHeader from "../components/dashboard/DashboardHeader";
 import { DEMO_PROFILES } from "../data/demoProfiles";
+import { APP_BASE_URL } from "../utils/apiClient";
 import { clearAuthUser } from "../utils/authStorage";
-import { getSocialLinkItems } from "../utils/socialLinks";
+import { getMyPortfolios, savePortfolio, uploadPortfolioImage } from "../utils/portfolioApi";
+import { getEmailHref, sendContactEmail } from "../utils/contactActions";
+import { getImageSrc } from "../utils/imageUrl";
+import { openResume } from "../utils/resumeDownload";
+import { getExternalHref, getSocialLinkItems } from "../utils/socialLinks";
 
 const DEFAULT_PROFILE = {
   ...DEMO_PROFILES.developer,
   slug: "aarav-sharma"
 };
 
+const EMAIL_REGEX = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+const INDIAN_PHONE_REGEX = /^[6-9]\d{9}$/;
+
 function makeSlug(name) {
   return name.toLowerCase().replace(/[^a-zA-Z0-9 ]/g, "").trim().replace(/\s+/g, "-");
+}
+
+function isAuthError(error) {
+  return /invalid token|unauthorized|session expired/i.test(error?.message || "");
 }
 
 export default function Dashboard() {
@@ -25,11 +36,47 @@ export default function Dashboard() {
   const [previewDevice, setPreviewDevice] = useState("desktop");
   const [fullscreenMode, setFullscreenMode] = useState(false);
   const [toast, setToast] = useState(null);
+  const [publishing, setPublishing] = useState(false);
   const [newSkill, setNewSkill] = useState("");
   const [experienceInput, setExperienceInput] = useState({ company: "", role: "", duration: "", description: "" });
   const [educationInput, setEducationInput] = useState({ institution: "", degree: "", year: "", description: "" });
   const [projectInput, setProjectInput] = useState({ title: "", description: "", tags: "", link: "", image: "" });
   const [socialInput, setSocialInput] = useState({ label: "", url: "" });
+
+  useEffect(() => {
+    let ignore = false;
+
+    getMyPortfolios()
+      .then((portfolios) => {
+        if (!ignore && portfolios[0]) {
+          setForm({
+            ...DEFAULT_PROFILE,
+            ...portfolios[0],
+            skills: portfolios[0].skills || [],
+            experience: portfolios[0].experience || [],
+            education: portfolios[0].education || [],
+            projects: portfolios[0].projects || [],
+            socialLinks: portfolios[0].socialLinks || [],
+          });
+          showToast("Your saved portfolio loaded");
+        }
+      })
+      .catch((error) => {
+        if (!ignore) {
+          if (isAuthError(error)) {
+            clearAuthUser();
+            navigate("/auth", { replace: true });
+            return;
+          }
+
+          showToast("Start editing and save to publish your portfolio");
+        }
+      });
+
+    return () => {
+      ignore = true;
+    };
+  }, []);
 
   useEffect(() => {
     if (form.name && !form.slug) {
@@ -53,18 +100,52 @@ export default function Dashboard() {
   };
 
   const handleSubmit = async () => {
+    if (publishing) return;
+
+    if (!form.slug?.trim()) {
+      showToast("Please add a portfolio URL before publishing");
+      return;
+    }
+
+    const contactEmail = form.contactEmail?.trim() || "";
+    const contactPhone = (form.contactPhone || "").replace(/\D/g, "");
+
+    if (contactEmail && !EMAIL_REGEX.test(contactEmail)) {
+      showToast("Please enter a valid contact email");
+      return;
+    }
+
+    if (contactPhone && !INDIAN_PHONE_REGEX.test(contactPhone)) {
+      showToast("Please enter a valid 10-digit Indian phone number");
+      return;
+    }
+
+    setPublishing(true);
+
     try {
-      await axios.post("http://localhost:5000/api/portfolio/create", form);
-      localStorage.setItem(`portfolio_${form.slug}`, JSON.stringify(form));
+      const savedPortfolio = await savePortfolio({
+        ...form,
+        contactEmail,
+        contactPhone,
+      });
+      setForm((prev) => ({ ...prev, ...savedPortfolio }));
+      localStorage.setItem(`portfolio_${savedPortfolio.slug}`, JSON.stringify(savedPortfolio));
       showToast("Portfolio published successfully");
     } catch (error) {
-      console.warn("Backend server not responding. Saving locally.", error);
-      localStorage.setItem(`portfolio_${form.slug}`, JSON.stringify(form));
-      showToast("Saved locally");
+      if (isAuthError(error)) {
+        clearAuthUser();
+        showToast("Please login again to publish your portfolio");
+        window.setTimeout(() => navigate("/auth", { replace: true }), 800);
+        return;
+      }
+
+      showToast(error.message || "Portfolio save failed");
+    } finally {
+      setPublishing(false);
     }
   };
 
-  const handleImageUpload = (event, onLoad) => {
+  const handleImageUpload = async (event, onLoad) => {
     const file = event.target.files?.[0];
     if (!file) return;
 
@@ -74,10 +155,28 @@ export default function Dashboard() {
       return;
     }
 
-    const reader = new FileReader();
-    reader.onload = () => onLoad(reader.result);
-    reader.readAsDataURL(file);
-    event.target.value = "";
+    if (file.size > 4 * 1024 * 1024) {
+      showToast("Please upload an image smaller than 4MB");
+      event.target.value = "";
+      return;
+    }
+
+    try {
+      const filename = await uploadPortfolioImage(file);
+      onLoad(filename);
+      showToast("Image uploaded successfully");
+    } catch (error) {
+      if (isAuthError(error)) {
+        clearAuthUser();
+        showToast("Please login again to upload images");
+        window.setTimeout(() => navigate("/auth", { replace: true }), 800);
+        return;
+      }
+
+      showToast(error.message || "Image upload failed");
+    } finally {
+      event.target.value = "";
+    }
   };
 
   const handleAddSkill = (event) => {
@@ -166,6 +265,10 @@ export default function Dashboard() {
     updateForm("slug", value.toLowerCase().replace(/[^a-zA-Z0-9-]/g, ""));
   };
 
+  const handlePhoneChange = (value) => {
+    updateForm("contactPhone", value.replace(/\D/g, "").slice(0, 10));
+  };
+
   const handleLogout = () => {
     clearAuthUser();
     navigate("/auth", { replace: true });
@@ -188,6 +291,19 @@ export default function Dashboard() {
           {data.education?.length > 0 && <li><a href="#education">Education</a></li>}
           <li><a href="#projects">Projects</a></li>
           <li><a href="#contact">Contact</a></li>
+          <li>
+            <button
+              type="button"
+              className="pt-nav-download-btn"
+              onClick={() => {
+                if (!openResume(data)) {
+                  showToast("Add a resume link in Contact before using this button");
+                }
+              }}
+            >
+              Download Resume
+            </button>
+          </li>
         </ul>
       </details>
       <a href="#home" className="pt-navbar-brand">{data.name || "Portfolio"}</a>
@@ -198,6 +314,19 @@ export default function Dashboard() {
         {data.education?.length > 0 && <li><a href="#education">Education</a></li>}
         <li><a href="#projects">Projects</a></li>
         <li><a href="#contact">Contact</a></li>
+        <li>
+          <button
+            type="button"
+            className="pt-nav-download-btn"
+            onClick={() => {
+              if (!openResume(data)) {
+                showToast("Add a resume link in Contact before using this button");
+              }
+            }}
+          >
+            Download Resume
+          </button>
+        </li>
       </ul>
     </nav>
   );
@@ -211,7 +340,11 @@ export default function Dashboard() {
             <ContactIcon type="email" />
             <div className="contact-info-text">
               <h4>Email Address</h4>
-              <p>{data.contactEmail || "your.email@example.com"}</p>
+              {data.contactEmail ? (
+                <a href={getEmailHref(data.contactEmail)}>{data.contactEmail}</a>
+              ) : (
+                <p>your.email@example.com</p>
+              )}
             </div>
           </div>
           {data.contactPhone && (
@@ -234,12 +367,19 @@ export default function Dashboard() {
           )}
         </div>
         <div className="contact-form">
-          <div className="template-contact-form-inner">
-            <input type="text" placeholder="Name" />
-            <input type="email" placeholder="Email Address" />
-            <textarea placeholder="Message details..." />
-            <button className="template-form-btn">Send Message</button>
-          </div>
+          <form
+            className="template-contact-form-inner"
+            onSubmit={(event) => {
+              if (!sendContactEmail(event, data.contactEmail, data.name)) {
+                showToast("Add a contact email before sending messages");
+              }
+            }}
+          >
+            <input name="name" type="text" placeholder="Name" required />
+            <input name="email" type="email" placeholder="Email Address" required />
+            <textarea name="message" placeholder="Message details..." required />
+            <button type="submit" className="template-form-btn">Send Message</button>
+          </form>
         </div>
       </div>
     </div>
@@ -255,7 +395,7 @@ export default function Dashboard() {
           <div className="hero-section" id="home">
             {form.profileImage && (
               <div className="avatar-container">
-                <img src={form.profileImage} alt={form.name} className="avatar-img" />
+                <img src={getImageSrc(form.profileImage)} alt={form.name} className="avatar-img" />
               </div>
             )}
             <h1>{form.name || "Your Name"}</h1>
@@ -320,7 +460,7 @@ export default function Dashboard() {
               <div className="card-grid">
                 {form.projects.map((project, index) => (
                   <div key={`${project.title}-${index}`} className="card" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-                    {project.image && <img src={project.image} alt={project.title} style={{ width: "100%", height: 170, objectFit: "cover", borderRadius: 8 }} />}
+                    {project.image && <img src={getImageSrc(project.image)} alt={project.title} style={{ width: "100%", height: 170, objectFit: "cover", borderRadius: 8 }} />}
                     <h4 className="card-title">{project.title}</h4>
                     <p className="card-desc">{project.description}</p>
                     {project.tags?.length > 0 && (
@@ -328,7 +468,7 @@ export default function Dashboard() {
                         {project.tags.map((tag) => <span key={tag} className="project-badge">{tag}</span>)}
                       </div>
                     )}
-                    {project.link && <a href={project.link} target="_blank" rel="noreferrer" className="btn-project" style={{ alignSelf: "flex-start" }}>View Project</a>}
+                    {project.link && <a href={getExternalHref(project.link)} target="_blank" rel="noreferrer" className="btn-project" style={{ alignSelf: "flex-start" }}>View Project</a>}
                   </div>
                 ))}
               </div>
@@ -349,6 +489,7 @@ export default function Dashboard() {
         slug={form.slug}
         onLogout={handleLogout}
         onPublish={handleSubmit}
+        publishing={publishing}
         onSlugChange={handleSlugChange}
         onToggleFullscreen={() => setFullscreenMode(!fullscreenMode)}
       />
@@ -504,7 +645,7 @@ export default function Dashboard() {
                     <div className="form-group"><textarea className="form-control" placeholder="Project description" value={projectInput.description} onChange={(event) => setProjectInput({ ...projectInput, description: event.target.value })} /></div>
                     <div className="form-group"><input className="form-control" placeholder="Tags comma separated" value={projectInput.tags} onChange={(event) => setProjectInput({ ...projectInput, tags: event.target.value })} /></div>
                     <div className="form-group"><input className="form-control" placeholder="Project link" value={projectInput.link} onChange={(event) => setProjectInput({ ...projectInput, link: event.target.value })} /></div>
-                    <div className="form-group"><ImageUploadField id="project-image-upload" label="Project Preview Image" previewAlt={projectInput.title || "Project image"} value={projectInput.image} onChange={(event) => handleImageUpload(event, (image) => setProjectInput({ ...projectInput, image }))} onRemove={() => setProjectInput({ ...projectInput, image: "" })} /></div>
+                    <div className="form-group"><ImageUploadField id="project-image-upload" label="Project Preview Image" previewAlt={projectInput.title || "Project image"} value={projectInput.image} onChange={(event) => handleImageUpload(event, (image) => setProjectInput((prev) => ({ ...prev, image })))} onRemove={() => setProjectInput((prev) => ({ ...prev, image: "" }))} /></div>
                     <button type="submit" className="btn-primary" style={{ width: "100%" }}>Add Project</button>
                   </form>
                 </div>
@@ -513,9 +654,10 @@ export default function Dashboard() {
               {activeTab === "contact" && (
                 <div>
                   <h3 className="section-title">Contact & Links</h3>
-                  <div className="form-group"><label className="form-label">Email</label><input className="form-control" value={form.contactEmail} onChange={(event) => updateForm("contactEmail", event.target.value)} /></div>
-                  <div className="form-group"><label className="form-label">Phone</label><input className="form-control" value={form.contactPhone} onChange={(event) => updateForm("contactPhone", event.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">Email</label><input className="form-control" type="email" value={form.contactEmail} onChange={(event) => updateForm("contactEmail", event.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">Phone</label><input className="form-control" inputMode="numeric" maxLength="10" value={form.contactPhone} onChange={(event) => handlePhoneChange(event.target.value)} /></div>
                   <div className="form-group"><label className="form-label">Location</label><input className="form-control" value={form.contactAddress} onChange={(event) => updateForm("contactAddress", event.target.value)} /></div>
+                  <div className="form-group"><label className="form-label">Resume Download URL</label><input className="form-control" value={form.resumeUrl || ""} onChange={(event) => updateForm("resumeUrl", event.target.value)} placeholder="Paste your resume link, e.g. Google Drive or PDF URL" /></div>
                   <div className="item-cards-list">
                     {getSocialLinkItems(form.socialLinks).map((link, index) => (
                       <div key={link.id || `${link.label}-${index}`} className="item-card"><div className="item-card-details"><h4>{link.label}</h4><p>{link.url}</p></div><button className="btn-icon-danger" onClick={() => handleRemoveSocialLink(index)}>x</button></div>
@@ -542,7 +684,7 @@ export default function Dashboard() {
           </div>
           <div className="preview-frame-container">
             <div className={`browser-mockup ${previewDevice === "mobile" ? "mobile" : ""}`}>
-              <div className="browser-bar"><div className="browser-dots"><div className="browser-dot dot-red" /><div className="browser-dot dot-yellow" /><div className="browser-dot dot-green" /></div><div className="browser-address"><span>localhost:5173/portfolio/{form.slug || "draft"}</span></div></div>
+              <div className="browser-bar"><div className="browser-dots"><div className="browser-dot dot-red" /><div className="browser-dot dot-yellow" /><div className="browser-dot dot-green" /></div><div className="browser-address"><span>{APP_BASE_URL.replace(/^https?:\/\//, "")}/portfolio/{form.slug || "draft"}</span></div></div>
               <div className="browser-content">{renderLiveTemplate()}</div>
             </div>
           </div>

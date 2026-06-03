@@ -53,7 +53,8 @@
     },
     contactEmail: "aarav@tech.com",
     contactPhone: "+91 98765 43210",
-    contactAddress: "New Delhi, India"
+    contactAddress: "New Delhi, India",
+    resumeUrl: "https://drive.google.com"
   },
   designer: {
     name: "Elena Rostova",
@@ -109,7 +110,8 @@
     },
     contactEmail: "elena@atelier.design",
     contactPhone: "+39 02 123456",
-    contactAddress: "Milan, Italy"
+    contactAddress: "Milan, Italy",
+    resumeUrl: "https://drive.google.com"
   },
   creative: {
     name: "Kunal Patel",
@@ -165,7 +167,7 @@
     },
     contactEmail: "kunal@sprout.io",
     contactPhone: "+1 (555) 321-7890",
-    contactAddress: "San Francisco, CA"
+    contactAddress: "San Francisco, CA",
+    resumeUrl: "https://drive.google.com"
   }
 };
-

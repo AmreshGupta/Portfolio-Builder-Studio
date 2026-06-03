@@ -1,3 +1,5 @@
+import { getImageSrc } from "../../utils/imageUrl";
+
 export default function ImageUploadField({
   id,
   label,
@@ -12,7 +14,7 @@ export default function ImageUploadField({
 
       <div className="image-upload-box">
         {value ? (
-          <img src={value} alt={previewAlt} className="image-upload-preview" />
+          <img src={getImageSrc(value)} alt={previewAlt} className="image-upload-preview" />
         ) : (
           <div className="image-upload-placeholder">
             <span>Choose image</span>

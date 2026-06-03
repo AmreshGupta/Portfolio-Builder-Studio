@@ -1,6 +1,13 @@
 import { Navigate, Outlet } from "react-router-dom";
-import { getAuthUser } from "../../utils/authStorage";
+import { clearAuthUser, getAuthUser } from "../../utils/authStorage";
 
 export default function ProtectedRoute() {
-  return getAuthUser() ? <Outlet /> : <Navigate to="/auth" replace />;
+  const authUser = getAuthUser();
+
+  if (!authUser?.token) {
+    clearAuthUser();
+    return <Navigate to="/auth" replace />;
+  }
+
+  return <Outlet />;
 }

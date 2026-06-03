@@ -26,37 +26,50 @@ textarea {
 .auth-page {
   min-height: 100vh;
   background:
-    radial-gradient(circle at 18% 18%, rgba(168, 85, 247, 0.2), transparent 28%),
-    radial-gradient(circle at 82% 12%, rgba(99, 102, 241, 0.18), transparent 30%),
-    linear-gradient(135deg, #090d16 0%, #0d1321 50%, #111827 100%);
+    radial-gradient(circle at 24% 18%, rgba(139, 92, 246, 0.24), transparent 30%),
+    radial-gradient(circle at 84% 14%, rgba(59, 130, 246, 0.14), transparent 34%),
+    linear-gradient(90deg, #101323 0%, #15172b 49%, #07101d 50%, #0a1220 100%);
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 32px;
+  padding: 0;
 }
 
 .auth-shell {
-  width: min(1080px, 100%);
-  min-height: 640px;
+  width: 100%;
+  min-height: 100vh;
   display: grid;
   grid-template-columns: 1.05fr 0.95fr;
   overflow: hidden;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 22px;
-  background: rgba(15, 23, 42, 0.72);
-  box-shadow: 0 28px 90px rgba(0, 0, 0, 0.45);
+  border: 0;
+  border-radius: 0;
+  background: rgba(8, 13, 24, 0.82);
+  box-shadow: none;
   backdrop-filter: blur(18px);
+}
+
+.reset-auth-shell {
+  min-height: 100vh;
+  grid-template-columns: minmax(320px, 560px);
+  justify-content: center;
+  background: rgba(8, 13, 24, 0.82);
+}
+
+.reset-form-panel {
+  width: 100%;
+  justify-content: center;
 }
 
 .auth-brand-panel {
   position: relative;
-  padding: 36px;
+  padding: 36px 48px;
   display: flex;
   flex-direction: column;
   justify-content: space-between;
   border-right: 1px solid rgba(255, 255, 255, 0.08);
   background:
-    linear-gradient(135deg, rgba(168, 85, 247, 0.14), rgba(99, 102, 241, 0.08)),
+    radial-gradient(circle at 44% 20%, rgba(168, 85, 247, 0.22), transparent 42%),
+    linear-gradient(135deg, rgba(168, 85, 247, 0.12), rgba(99, 102, 241, 0.06)),
     rgba(9, 13, 22, 0.9);
 }
 
@@ -83,21 +96,21 @@ textarea {
 
 .auth-copy h1 {
   color: white;
-  font-size: clamp(2.2rem, 5vw, 4.6rem);
+  font-size: clamp(3rem, 5.8vw, 6rem);
   line-height: 1.02;
   font-weight: 800;
   margin-bottom: 18px;
 }
 
 .auth-copy p {
-  color: #94a3b8;
-  font-size: 1rem;
-  max-width: 480px;
+  color: #aab6d3;
+  font-size: 1.2rem;
+  max-width: 640px;
 }
 
 .auth-preview-card {
-  width: min(360px, 100%);
-  padding: 18px;
+  width: min(580px, 100%);
+  padding: 26px;
   border-radius: 16px;
   background: rgba(255, 255, 255, 0.045);
   border: 1px solid rgba(255, 255, 255, 0.08);
@@ -167,24 +180,26 @@ textarea {
   display: flex;
   flex-direction: column;
   justify-content: center;
-  padding: 44px;
-  background: rgba(13, 19, 33, 0.9);
+  padding: 70px 88px;
+  background:
+    radial-gradient(circle at 70% 25%, rgba(59, 130, 246, 0.1), transparent 34%),
+    rgba(5, 13, 25, 0.92);
 }
 
 .auth-tabs {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: 6px;
-  padding: 5px;
-  margin-bottom: 34px;
-  border-radius: 12px;
+  gap: 8px;
+  padding: 8px;
+  margin-bottom: 58px;
+  border-radius: 18px;
   background: rgba(255, 255, 255, 0.05);
 }
 
 .auth-tabs button {
   border: 0;
-  border-radius: 9px;
-  padding: 10px 14px;
+  border-radius: 14px;
+  padding: 18px 14px;
   color: #94a3b8;
   background: transparent;
   cursor: pointer;
@@ -204,19 +219,19 @@ textarea {
 
 .auth-form-heading h2 {
   color: white;
-  font-size: 1.75rem;
+  font-size: 2.4rem;
   margin-bottom: 8px;
 }
 
 .auth-form-heading p {
-  color: #64748b;
-  font-size: 0.92rem;
+  color: #77859e;
+  font-size: 1.1rem;
 }
 
 .auth-form {
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 18px;
 }
 
 .auth-field {
@@ -235,20 +250,72 @@ textarea {
 
 .auth-field input {
   width: 100%;
-  min-height: 46px;
-  border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 10px;
+  min-height: 58px;
+  border: 1px solid rgba(148, 163, 184, 0.16);
+  border-radius: 14px;
   outline: none;
-  padding: 0 14px;
+  padding: 0 18px;
   color: #f8fafc;
-  background: rgba(255, 255, 255, 0.04);
+  background: rgba(255, 255, 255, 0.045);
   transition: all 0.2s ease;
+}
+
+.auth-field input:disabled {
+  color: #94a3b8;
+  cursor: not-allowed;
+  opacity: 0.78;
 }
 
 .auth-field input:focus {
   border-color: #8b5cf6;
   background: rgba(255, 255, 255, 0.07);
   box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.16);
+}
+
+.email-field-wrapper,
+.otp-field-wrapper {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 10px;
+}
+
+.email-verify-btn,
+.email-verified-badge,
+.otp-verify-btn {
+  min-height: 58px;
+  border: 0;
+  border-radius: 14px;
+  padding: 0 18px;
+  color: white;
+  cursor: pointer;
+  font-size: 0.88rem;
+  font-weight: 800;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #8b5cf6, #4f46e5);
+  box-shadow: 0 12px 26px rgba(79, 70, 229, 0.24);
+  transition: all 0.2s ease;
+}
+
+.email-verify-btn:hover,
+.otp-verify-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 16px 34px rgba(99, 102, 241, 0.38);
+}
+
+.email-verify-btn:disabled,
+.otp-verify-btn:disabled,
+.auth-submit-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.48;
+  transform: none;
+  box-shadow: none;
+}
+
+.email-verified-badge {
+  background: rgba(34, 197, 94, 0.16);
+  border: 1px solid rgba(34, 197, 94, 0.35);
+  color: #86efac;
+  box-shadow: none;
 }
 
 .auth-message {
@@ -260,11 +327,17 @@ textarea {
   font-size: 0.84rem;
 }
 
+.auth-message.success {
+  color: #86efac;
+  background: rgba(34, 197, 94, 0.12);
+  border-color: rgba(34, 197, 94, 0.24);
+}
+
 .auth-submit-btn {
-  min-height: 48px;
+  min-height: 58px;
   border: 0;
-  border-radius: 10px;
-  margin-top: 4px;
+  border-radius: 14px;
+  margin-top: 10px;
   color: white;
   cursor: pointer;
   font-weight: 800;
@@ -276,6 +349,31 @@ textarea {
 .auth-submit-btn:hover {
   transform: translateY(-1px);
   box-shadow: 0 16px 34px rgba(99, 102, 241, 0.45);
+}
+
+.forgot-password-row {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: -4px;
+}
+
+.forgot-link,
+.back-login-btn {
+  border: 0;
+  background: transparent;
+  color: #8b5cf6;
+  cursor: pointer;
+  font-weight: 800;
+}
+
+.forgot-link:hover,
+.back-login-btn:hover {
+  color: #a78bfa;
+}
+
+.back-login-btn {
+  align-self: center;
+  margin-top: 8px;
 }
 
 @media (max-width: 860px) {
@@ -301,6 +399,11 @@ textarea {
 
   .auth-form-panel {
     padding: 30px 22px;
+  }
+
+  .email-field-wrapper,
+  .otp-field-wrapper {
+    grid-template-columns: 1fr;
   }
 }
 
@@ -447,6 +550,15 @@ textarea {
 .btn-primary:hover {
   transform: translateY(-1px);
   box-shadow: 0 6px 20px rgba(99, 102, 241, 0.55);
+}
+
+.btn-primary:disabled,
+.btn-secondary.disabled-link {
+  cursor: not-allowed;
+  opacity: 0.55;
+  pointer-events: none;
+  transform: none;
+  box-shadow: none;
 }
 
 /* Split Main View */
@@ -1263,9 +1375,12 @@ textarea.form-control {
   color: #64748b;
   text-transform: uppercase;
 }
-.pt-modern .contact-info-text p {
+.pt-modern .contact-info-text p,
+.pt-modern .contact-info-text a {
   font-size: 0.9rem;
   color: #cbd5e1;
+  text-decoration: none;
+  overflow-wrap: anywhere;
 }
 
 .pt-modern .contact-form {
@@ -1475,9 +1590,12 @@ textarea.form-control {
   margin-bottom: 4px;
   font-weight: 600;
 }
-.pt-minimal .contact-info-text p {
+.pt-minimal .contact-info-text p,
+.pt-minimal .contact-info-text a {
   font-size: 1rem;
   color: #1e1e1e;
+  text-decoration: none;
+  overflow-wrap: anywhere;
 }
 
 .pt-minimal .contact-form {
@@ -1702,10 +1820,13 @@ textarea.form-control {
   color: #9ca3af;
   text-transform: uppercase;
 }
-.pt-creative .contact-info-text p {
+.pt-creative .contact-info-text p,
+.pt-creative .contact-info-text a {
   font-size: 0.85rem;
   color: #1f2937;
   font-weight: 600;
+  text-decoration: none;
+  overflow-wrap: anywhere;
 }
 
 .pt-creative .contact-form {
@@ -1809,7 +1930,7 @@ textarea.form-control {
 }
 
 .floating-dashboard-widget::before {
-  content: 'â†';
+  content: '<';
   font-size: 1rem;
 }
 
@@ -1928,6 +2049,32 @@ html {
   min-height: 32px;
 }
 
+.pt-nav-download-btn {
+  min-height: 36px;
+  border: 1px solid rgba(139, 92, 246, 0.22);
+  border-radius: 999px;
+  padding: 0 14px;
+  color: #7c3aed;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 800;
+  white-space: nowrap;
+  background: rgba(255, 255, 255, 0.92);
+  box-shadow: 0 8px 18px rgba(15, 23, 42, 0.12);
+  transition: all 0.2s ease;
+}
+
+.pt-nav-download-btn::before {
+  content: none;
+}
+
+.pt-nav-download-btn:hover {
+  transform: translateY(-1px);
+  background: #ffffff;
+  border-color: rgba(139, 92, 246, 0.38);
+  box-shadow: 0 12px 24px rgba(79, 70, 229, 0.18);
+}
+
 /* 1. Modern Tech Navbar */
 .pt-modern .pt-navbar {
   background: rgba(10, 14, 26, 0.85);
@@ -1946,6 +2093,13 @@ html {
 .pt-modern .pt-navbar-links a:hover {
   color: #c084fc;
   text-shadow: 0 0 10px rgba(192, 132, 252, 0.4);
+}
+
+.pt-modern .pt-nav-download-btn {
+  color: #c4b5fd;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(196, 181, 253, 0.32);
+  box-shadow: none;
 }
 
 /* 2. Elegant Minimalist Navbar */
@@ -1967,6 +2121,16 @@ html {
 .pt-minimal .pt-navbar-links a:hover {
   color: #000;
   border-bottom: 1px solid #000;
+}
+
+.pt-minimal .pt-nav-download-btn {
+  border: 1px solid #d4d4d4;
+  border-radius: 999px;
+  color: #111;
+  background: #fff;
+  box-shadow: none;
+  text-transform: uppercase;
+  letter-spacing: 0.08em;
 }
 
 /* 3. Creative Gradient Navbar */
@@ -1991,6 +2155,13 @@ html {
 .pt-creative .pt-navbar-links a:hover {
   color: #f43f5e;
   transform: translateY(-1px);
+}
+
+.pt-creative .pt-nav-download-btn {
+  color: #be123c;
+  background: #fff;
+  border-color: #fecdd3;
+  box-shadow: 0 8px 18px rgba(244, 63, 94, 0.1);
 }
 
 @media (max-width: 640px) {
@@ -2056,6 +2227,10 @@ html {
     background: rgba(255, 255, 255, 0.06);
     font-size: 0.82rem;
     color: #e2e8f0;
+  }
+
+  .pt-nav-menu .pt-nav-download-btn {
+    width: 100%;
   }
 
   .pt-minimal .pt-navbar {

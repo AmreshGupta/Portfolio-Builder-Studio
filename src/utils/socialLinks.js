@@ -23,10 +23,17 @@ export function getSocialLinkItems(socialLinks) {
     }));
 }
 
+export function isEmailLink(item) {
+  const label = item.label?.toLowerCase() || "";
+  const url = item.url?.trim() || "";
+
+  return label.includes("email") || label.includes("mail") || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(url);
+}
+
 export function getSocialHref(item) {
   const url = item.url.trim();
 
-  if (item.label.toLowerCase() === "email" && !url.startsWith("mailto:")) {
+  if (isEmailLink(item) && !url.startsWith("mailto:")) {
     return `mailto:${url}`;
   }
 
@@ -35,4 +42,18 @@ export function getSocialHref(item) {
   }
 
   return `https://${url}`;
+}
+
+export function getExternalHref(url = "") {
+  const trimmed = url.trim();
+
+  if (!trimmed) {
+    return "";
+  }
+
+  if (/^(https?:|mailto:|tel:)/i.test(trimmed)) {
+    return trimmed;
+  }
+
+  return `https://${trimmed}`;
 }

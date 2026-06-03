@@ -3,8 +3,9 @@ export default function DashboardHeader({
   slug,
   onLogout,
   onPublish,
+  publishing,
   onSlugChange,
-  onToggleFullscreen
+  onToggleFullscreen,
 }) {
   return (
     <header className="dashboard-header">
@@ -29,7 +30,12 @@ export default function DashboardHeader({
           {fullscreenMode ? "Show Editor" : "Fullscreen Preview"}
         </button>
 
-        <a href={`/portfolio/${slug}`} target="_blank" rel="noreferrer" className="btn-secondary">
+        <a
+          href={slug ? `/portfolio/${slug}` : undefined}
+          target="_blank"
+          rel="noreferrer"
+          className={`btn-secondary ${!slug ? "disabled-link" : ""}`}
+        >
           View Live URL
         </a>
 
@@ -37,8 +43,8 @@ export default function DashboardHeader({
           Logout
         </button>
 
-        <button className="btn-primary" onClick={onPublish}>
-          Save & Publish
+        <button className="btn-primary" onClick={onPublish} disabled={publishing}>
+          {publishing ? "Saving..." : "Save & Publish"}
         </button>
       </div>
     </header>

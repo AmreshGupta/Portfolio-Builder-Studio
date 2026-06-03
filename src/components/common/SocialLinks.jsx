@@ -1,4 +1,4 @@
-import { getSocialHref, getSocialLinkItems } from "../../utils/socialLinks";
+import { getSocialHref, getSocialLinkItems, isEmailLink } from "../../utils/socialLinks";
 
 function SocialIcon({ label }) {
   const normalized = label.toLowerCase();
@@ -90,8 +90,8 @@ export default function SocialLinks({ links }) {
         <a
           key={item.id || `${item.label}-${index}`}
           href={getSocialHref(item)}
-          target={item.label.toLowerCase() === "email" ? undefined : "_blank"}
-          rel={item.label.toLowerCase() === "email" ? undefined : "noreferrer"}
+          target={isEmailLink(item) ? undefined : "_blank"}
+          rel={isEmailLink(item) ? undefined : "noreferrer"}
           className="social-link"
           title={item.label}
         >

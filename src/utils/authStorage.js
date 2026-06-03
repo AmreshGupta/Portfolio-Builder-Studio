@@ -23,9 +23,17 @@ export function getAuthUser() {
 }
 
 export function saveAuthUser(user) {
+  if (!user?.token) {
+    clearAuthUser();
+    return;
+  }
+
   localStorage.setItem(AUTH_USER_KEY, JSON.stringify({
-    name: user.name,
-    email: user.email
+    id: user._id || user.id,
+    name: user.name || user.fullName,
+    fullName: user.fullName || user.name,
+    email: user.email,
+    token: user.token,
   }));
 }
 
