@@ -15,6 +15,7 @@ export default function Portfolio() {
   const [errorMsg, setErrorMsg] = useState(null);
   const [resumeMessage, setResumeMessage] = useState("");
   const [contactMessage, setContactMessage] = useState("");
+  const [contactSending, setContactSending] = useState(false);
 
   useEffect(() => {
     getPortfolio(slug)
@@ -59,6 +60,10 @@ export default function Portfolio() {
   const handleContactSubmit = async (event) => {
     event.preventDefault();
 
+    if (contactSending) {
+      return;
+    }
+
     const form = event.currentTarget;
     const messageData = getContactFormData(form);
 
@@ -69,11 +74,14 @@ export default function Portfolio() {
     }
 
     try {
+      setContactSending(true);
       await sendPortfolioMessage(slug, messageData);
       form.reset();
       setContactMessage("Message sent successfully.");
     } catch (error) {
       setContactMessage(error.message || "Unable to send message. Please try again.");
+    } finally {
+      setContactSending(false);
     }
 
     window.setTimeout(() => setContactMessage(""), 3000);
@@ -477,7 +485,9 @@ export default function Portfolio() {
                     <input name="name" type="text" placeholder="Your Name" required />
                     <input name="email" type="email" placeholder="Your Email" required />
                     <textarea name="message" placeholder="Write message details..." required></textarea>
-                    <button type="submit" className="template-form-btn">Send Message</button>
+                    <button type="submit" className="template-form-btn" disabled={contactSending}>
+                      {contactSending ? "Sending..." : "Send Message"}
+                    </button>
                   </form>
                 </div>
               </div>
@@ -707,7 +717,9 @@ export default function Portfolio() {
                     <input name="name" type="text" placeholder="Your Name" required />
                     <input name="email" type="email" placeholder="Your Email" required />
                     <textarea name="message" placeholder="Tell me anything..." required></textarea>
-                    <button type="submit" className="template-form-btn">Send Message</button>
+                    <button type="submit" className="template-form-btn" disabled={contactSending}>
+                      {contactSending ? "Sending..." : "Send Message"}
+                    </button>
                   </form>
                 </div>
               </div>
@@ -924,7 +936,9 @@ export default function Portfolio() {
                   <input name="name" type="text" placeholder="Name" required />
                   <input name="email" type="email" placeholder="Email Address" required />
                   <textarea name="message" placeholder="Message details..." required></textarea>
-                  <button type="submit" className="template-form-btn">Send Message</button>
+                  <button type="submit" className="template-form-btn" disabled={contactSending}>
+                    {contactSending ? "Sending..." : "Send Message"}
+                  </button>
                 </form>
               </div>
             </div>

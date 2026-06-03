@@ -1889,6 +1889,11 @@ textarea.form-control {
   transition: all 0.2s;
 }
 
+.template-form-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.65;
+}
+
 .pt-modern .template-form-btn {
   background: linear-gradient(135deg, #a855f7, #6366f1);
   color: white;
